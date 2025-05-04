@@ -1,20 +1,21 @@
 FROM python:3.10-slim-buster
 
-WORKDIR /app
+USER root
 
-# Copy the files into the container
+WORKDIR /src
+
+COPY ./requirements.txt requirements.txt
+
+# Install system dependencies
+RUN apt update -y && apt install -y --no-install-recommends \
+    build-essential libpq-dev
+
+# Install Python dependencies first
+COPY requirements.txt .
+RUN pip install --upgrade pip setuptools wheel \
+    && pip install -r requirements.txt
+
+# Copy the rest of the app
 COPY . .
 
-RUN apt update -y && apt install build-essential libpq-dev -y
-RUN pip install --upgrade pip setuptools wheel
-RUN pip install -r requirements.txt
-
-
-ENV DB_USERNAME=myuser
-ENV DB_PASSWORD=mypassword
-ENV DB_HOST=127.0.0.1
-ENV DB_PORT=5433
-ENV DB_NAME=mydatabase
-
-# Set the command to run the script
 CMD ["python", "app.py"]
